@@ -27,13 +27,13 @@ exports.get = async (req, res) => {
     }
   }
 
-  return res.status(200).send({ data: {heros}, status: "success" });
+  return res.status(200).send({data: heros, status: "success"});
 }
 
 exports.change = async (req, res) => {
   const isInclude = await verifyOwner(req.address, [req.body.id]);
   if(!isInclude) {
-    return res.status(200).send({ message: "Token balance error! Please reload your tokens", status: "errors" });
+    return res.status(200).send({ data: "Token balance error! Please reload your tokens", status: "errors" });
   }
 
   const Land = await service.getLands(req.address)
@@ -43,13 +43,13 @@ exports.change = async (req, res) => {
   User.findOne({_id: req.idUser})
   .exec(async (err, user) => {
     if (err) {
-      return res.status(200).send({ message: err, status: "errors" });
+      return res.status(200).send({ data: err, status: "errors" });
     }
     
     const selLand = Land.lands.find(l => l.id === user.activedLandId);
     
     if(selLand?.heroCount === HeroData.ids.length && req.body.status) {
-      return res.status(200).send({ message: "The number of available actives has reached the limit.", status: "errors" });
+      return res.status(200).send({ data: "The number of available actives has reached the limit.", status: "errors" });
     }
     const selTrainer = Trainer.trainers.find(t => t.id === user.activedTrainerId);
     var percent = 1 - selTrainer.percent / 100;
@@ -59,7 +59,7 @@ exports.change = async (req, res) => {
     })
     .exec(async (err, hero) => {
       if (err) {
-        return res.status(200).send({ message: "Incorrect id or password", status: "errors" });
+        return res.status(200).send({ data: "Incorrect id or password", status: "errors" });
       }
   
       if (!hero) {
@@ -76,7 +76,6 @@ exports.change = async (req, res) => {
         return res.status(200).send({
           status: "success",
           data: hero,
-          user: req.idUser,
         });
       }else {
   
@@ -85,18 +84,18 @@ exports.change = async (req, res) => {
           stamina = hero.stamina - 1;
           if(stamina < 0) {
             hero.isAlive = false;
-            hero.enabledAt = Date.now();
+            hero.activedAt = Date.now();
             hero.remainedTime = config.aliveDuration * percent;
           }
           hero.stamina  = stamina;
         }else if(req.body.status && !hero.status) {
 
-          hero.enabledAt = Date.now();
+          hero.activedAt = Date.now();
           hero.status = req.body.status
           hero.remainedTime = config.aliveDuration * percent;
 
         }else if(!req.body.status && hero.status) {
-          if(hero.remainedTime * 1000 + hero.enabledAt > Date.now()) {
+          if(hero.remainedTime * 1000 + hero.activedAt > Date.now()) {
             hero.isAlive = true;
           }else {
             hero.remainedTime = config.aliveDuration * percent;
@@ -110,7 +109,6 @@ exports.change = async (req, res) => {
         return res.status(200).send({
           status: "success",
           data: hero,
-          user: req.idUser,
         });
       }
     });

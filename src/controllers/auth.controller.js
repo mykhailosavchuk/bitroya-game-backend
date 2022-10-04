@@ -8,9 +8,8 @@ const service = require("../service")
 exports.connect = async (req, res) => {
 
   const address = await service.recoverSignature(req.body.signature);
-  console.log(address, req.body.address)
   if(req.body.address !== address) {
-    return res.status(200).send({ message: "Signature error", status: "errors" });
+    return res.status(200).send({ data: "Signature error", token: "", status: "errors" });
   }else {
 
     User.findOne({
@@ -19,7 +18,7 @@ exports.connect = async (req, res) => {
     .populate("roles", "-__v")
     .exec((err, user) => {
       if (err) {
-        res.status(200).send({ message: "Incorrect id or password", status: "errors" });
+        res.status(200).send({ data: "Incorrect id or password", token: "", status: "errors" });
         return;
       }
       if (!user) {
@@ -29,14 +28,16 @@ exports.connect = async (req, res) => {
         Role.findOne({ name: "user" }, async (err, role) => {
           if (err) {
             return res.status(200).send({ 
-              message: "Role doesn't exist.",
+              data: "Role doesn't exist.",
+              token: "", 
               status: "errors"
             });
           }
 
           if(!role) {
             return  res.status(200).send({ 
-              message: "Role doesn't exist.",
+              data: "Role doesn't exist.",
+              token: "", 
               status: "errors"
             });
           }

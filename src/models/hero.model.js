@@ -19,8 +19,7 @@ module.exports = (connection, autoIncrement) => {
       default: false
     },
     enabledAt: {
-      type: Date,
-      default: Date.now
+      type: Number,
     },
     remainedTime: {
       type: Number,

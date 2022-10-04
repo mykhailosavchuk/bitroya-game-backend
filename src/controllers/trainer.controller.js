@@ -9,16 +9,16 @@ exports.get = async (req, res) => {
   User.findOne({_id: req.idUser})
   .exec(async (err, user) => {
     if (err) {
-      return res.status(200).send({ message: err, status: "errors" });
+      return res.status(200).send({ data: err, status: "errors" });
     }
 
     if(Trainer.ids.includes(user.activedTrainerId)){
-      return res.status(200).send({ data: {ids: Trainer.ids, trainers: Trainer.trainers, activedTrainerId: user.activedTrainerId}, status: "success" });
+      return res.status(200).send({data: Trainer.trainers, status: "success"});
     }else {
       user.activedTrainerId = -1;
       await user.save();
       await updateRemainTime(req.idUser, Trainer.trainers[0].percent, 100);
-      return res.status(200).send({ data: {ids: Trainer.ids, trainers: Trainer.trainers, activedTrainerId: 0}, status: "success" });
+      return res.status(200).send({data: Trainer.trainers, status: "success"});
     }
 
   })
@@ -30,16 +30,16 @@ exports.put = async (req, res) => {
   User.findOne({_id: req.idUser})
   .exec(async (err, user) => {
     if (err) {
-      return res.status(200).send({ message: err, status: "errors" });
+      return res.status(200).send({ data: err, status: "errors" });
     }
 
     if(!user) {
-      return res.status(200).send({ message: err, status: "errors" });
+      return res.status(200).send({ data: err, status: "errors" });
     }
     var Trainer = await service.getTrainers(req.address)
 
     if(Trainer.ids.includes(req.body.id)){
-      return res.status(200).send({ message: "Please buy trainer", status: "error" });
+      return res.status(200).send({ data: "Please buy trainer", status: "error" });
     }
     
     const preTrainer = await service.getTrainerDetail(user.activedTrainerId);
@@ -49,7 +49,7 @@ exports.put = async (req, res) => {
 
     await updateRemainTime(req.idUser, prePercent, Trainer.trainers[req.body.id].percent);
 
-    return res.status(200).send({ message: "success", status: "success"});
+    return res.status(200).send({ data: "success", status: "success"});
       
   })
   
@@ -67,8 +67,8 @@ const updateRemainTime = async (idUser, prePercent, newPercent) => {
     const hero = await Hero.findOne({_id: heros[i]._id});
         
     if(hero.status) {
-      hero.remainedTime = (hero.remainedTime - (Date.now() - hero.enabledAt) / 1000) / prePercent * percent;
-      if(hero.remainedTime * 1000 + hero.enabledAt > Date.now()) {
+      hero.remainedTime = (hero.remainedTime - (Date.now() - hero.activedAt) / 1000) / prePercent * percent;
+      if(hero.remainedTime * 1000 + hero.activedAt > Date.now()) {
         hero.isAlive = true;
       }
     }else {

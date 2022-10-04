@@ -22,15 +22,15 @@ exports.query = (req, res) => {
     .exec(async (err, games) => {
 
       if (err) {
-        res.status(500).send({ message: err });
+        res.status(500).send({ data: err, status: "errors"  });
         return;
       }
 
       if (!games) {
-        return res.status(404).send({ message: "Games Not found." });
+        return res.status(404).send({ data: "Games Not found.", status: "errors" });
       }
         
-      return res.status(200).send({data: {games}, status: "success"});    
+      return res.status(200).send({data: games, status: "success"});    
     })
 };
 
@@ -40,12 +40,12 @@ exports.create = (req, res) => {
     .exec(async (err, users) => {
 
       if (err) {
-        res.status(500).send({ message: err });
+        res.status(500).send({ data: err, status: "errors" });
         return;
       }
 
       if (!users) {
-        return res.status(404).send({ message: "User Not found." });
+        return res.status(404).send({ data: "User Not found.", status: "errors" });
       }
 
       let token = await new Token({
@@ -71,9 +71,9 @@ exports.upate = async (req, res) => {
     type: "Game",
   });
 
-  if (tokens.length === 0) return res.status(200).send({message: "Token doesn't exist", status: "errors"});
+  if (tokens.length === 0) return res.status(200).send({data: "Token doesn't exist", status: "errors"});
   if(!tokens.map(t => t.token).includes(req.token)) {
-    return res.status(200).send({message: "Incorrect token", status: "errors"});
+    return res.status(200).send({data: "Incorrect token", status: "errors"});
   }
 
   if(req.body.result === "Win") {
@@ -87,7 +87,7 @@ exports.upate = async (req, res) => {
   await Game.updateOne({user: req.idUser, result: req.body.result});
   await Token.deleteMany({_id: {$in: tokens.map(t => t._id)}});
 
-  return res.status(200).send({message: "success", status: "success"});    
+  return res.status(200).send({data: "success", status: "success"});    
 };
 
 exports.claim = async (req, res) => {
@@ -102,8 +102,8 @@ exports.claim = async (req, res) => {
     console.log(feePercent)
     await User.updateOne({_id: req.idUser}, {awardAmount: 0, isFirstWin: false});
     // await service.claim(req.address, user.awardAmount - user.awardAmount * feePercent );
-    return res.status(200).send({message: "success", status: "success"});    
+    return res.status(200).send({data: "success", status: "success"});    
   }
-  return res.status(200).send({message: `Amount should be at least ${config.minClaimAmount}`, status: "errors"});    
+  return res.status(200).send({data: `Amount should be at least ${config.minClaimAmount}`, status: "errors"});    
 };
 

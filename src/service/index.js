@@ -3,6 +3,9 @@ const { Interface } = require('@ethersproject/abi');
 const { sinatureKey } = require("../config/auth.config");
 const config = require("../config");
 const axios = require('axios').default;
+const db = require("../models");
+const User = db.user;
+const Hero = db.hero;
 
 class Service {
 
@@ -36,10 +39,19 @@ class Service {
 
     async getHeros(account) {
 
+        const user = await User.findOne({address: account})
+        const activedHeros = await Hero.find({owner: user._id, status: true})
+
         // const ids = this.heroContract.methods.walletOfOwner(account).call();
         var ids = [1,2,3,4,5,6,76,56,,10,34,57]
         var heros = ids.map((id) => {
             // const res = await axios.get(`${config.hostingURL}/${id}`);
+
+            const selHero = activedHeros.find(h => h.idHero === id);
+            var actived = false;
+            if(selHero) {
+                actived = true;
+            }
 
             return  {
                 id,
@@ -50,7 +62,8 @@ class Service {
                 },
                 "image": "",
                 "description": "",
-                "name": "Skin Lella"
+                "name": "Skin Lella",
+                actived
               }
         });
         ids = [-1, ...ids]
@@ -73,6 +86,8 @@ class Service {
 
     async getLands(account) {
         // const ids = this.landContract.methods.walletOfOwner(account).call();
+        const user = await User.findOne({address: account})
+
         var ids = [1,5,76]
         var lands = ids.map((id) => {
             var type = "Small";
@@ -95,11 +110,15 @@ class Service {
                     heroCount = 20;
                     break;
             }
-            
+            let actived = false;
+            if(id === user.activedLandId) {
+                actived = true
+            }
             return  {
                 id,
                 type,
-                heroCount
+                heroCount,
+                actived
             }
         });
 
@@ -127,7 +146,7 @@ class Service {
     }
 
     async getTrainers(account) {
-
+        const user = await User.findOne({address: account})
         // const ids = this.trainerContract.methods.walletOfOwner(account).call();
         var ids = [1,5,76]
         var trainers = await ids.map((id) => {
@@ -138,12 +157,18 @@ class Service {
             //     percent: 11
             // }
             // return  memo[id] = res.data;
+            let actived = false;
+            if(id === user.activedTrainerId) {
+                actived = true
+            }
             return {
                 id,
                 type: getRandomType(),
-                percent: getRandomPercent()
+                percent: getRandomPercent(),
+                actived
             };
         });
+
         ids = [-1, ...ids]
         trainers = [{
             id: -1,

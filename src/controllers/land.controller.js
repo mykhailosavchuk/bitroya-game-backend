@@ -9,15 +9,15 @@ exports.get = async (req, res) => {
   User.findOne({_id: req.idUser})
   .exec(async (err, user) => {
     if (err) {
-      return res.status(200).send({ message: err, status: "errors" });
+      return res.status(200).send({ data: err, status: "errors" });
     }
 
     if(Land.ids.includes(user.activedLandId)){
-      return res.status(200).send({ data: {lands: Land, activedLandId: user.activedLandId}, status: "success" });
+      return res.status(200).send({ data: Land.lands, status: "success" });
     }else {
       user.activedLandId = -1;
       await user.save();
-      return res.status(200).send({ data: {lands: Land, activedLandId: 0}, status: "success" });
+      return res.status(200).send({data: Land.lands, status: "success"});
     }
 
   })
@@ -31,7 +31,7 @@ exports.put = async (req, res) => {
   User.findOne({_id: req.idUser})
   .exec(async (err, user) => {
     if (err) {
-      return res.status(200).send({ message: err, status: "errors" });
+      return res.status(200).send({ data: err, status: "errors" });
     }
     const count = await Hero.count({owner: req.idUser, status: true});
     const selLand = lands.find(l => l.id === user.activedLandId)
@@ -40,7 +40,7 @@ exports.put = async (req, res) => {
     }
     user.activedLandId = req.body.id;
     await user.save();
-    return res.status(200).send({ message: "success", status: "success" });
+    return res.status(200).send({ data: "success", status: "success" });
     
   })
   

@@ -12,20 +12,20 @@ exports.dashboard = async (req, res) => {
     .exec((err, user) => {
 
       if (err) {
-        res.status(500).send({ message: err });
+        res.status(500).send({ data: err, status: "errors" });
         return;
       }
 
       if (!user) {
-        return res.status(404).send({ message: "Orders Not found." });
+        return res.status(404).send({ data: "Orders Not found.", status: "errors" });
       }
 
-      return res.status(200).send({
+      return res.status(200).send({data: {
         user,
-        lands: lands,
-        trainers: trainers
+        lands: lands.lands,
+        trainers: trainers.trainers
 
-      });    
+      }, status: "errors"});    
     })
 };
 
@@ -35,12 +35,12 @@ exports.setRole = (req, res) => {
     .exec((err, user) => {
 
       if (err) {
-        res.status(500).send({ message: err });
+        res.status(500).send({ data: err, status: "errors" });
         return;
       }
 
       if (!user) {
-        return res.status(404).send({ message: "Orders Not found." });
+        return res.status(404).send({ data: "Orders Not found.", status: "errors" });
       }
 
       Role
@@ -59,14 +59,14 @@ exports.setRole = (req, res) => {
             .populate('roles')
             .exec((err, fUser) => {
               if (err) {
-                res.status(500).send({ message: err });
+                res.status(500).send({ data: err, status: "errors" });
                 return;
               }
         
               if (!fUser) {
-                return res.status(404).send({ message: "Orders Not found." });
+                return res.status(404).send({ data: "Orders Not found.", status: "errors" });
               }
-              res.status(200).json(fUser);
+              res.status(200).json({data: fUser, status: "success"});
             })
           });
         }
