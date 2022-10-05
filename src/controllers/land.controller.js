@@ -4,13 +4,18 @@ const Hero = db.hero;
 const User = db.user;
 
 exports.get = async (req, res) => {
-  const Land = await service.getLands(req.address)
 
   User.findOne({_id: req.idUser})
   .exec(async (err, user) => {
     if (err) {
       return res.status(200).send({ data: err, status: "errors" });
     }
+
+    if (!user) {
+      return res.status(404).send({ data: "User Not found.", status: "errors" });
+    }
+
+    const Land = await service.getLands(req.address)
 
     if(Land.ids.includes(user.activedLandId)){
       return res.status(200).send({ data: Land.lands, status: "success" });
