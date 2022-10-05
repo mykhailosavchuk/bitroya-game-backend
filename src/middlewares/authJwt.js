@@ -28,7 +28,6 @@ const verifyGameToken = (req, res, next) => {
   }
 
   req.token = token;
-  console.log(token)
   next();
 };
 

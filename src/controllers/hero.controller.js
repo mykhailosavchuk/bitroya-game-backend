@@ -27,7 +27,20 @@ exports.get = async (req, res) => {
     }
   }
 
-  return res.status(200).send({data: heros, status: "success"});
+  const viewHeros = heros.map(h => ({
+    TokenId: h.id,
+    Name: h.name,
+    Image: h.image,
+    Description: h.description,
+    Royalty: h.royalty,
+    Attack: h.attack,
+    Health: h.health,
+    Stamina: h.stamina,
+    RemainedTime: h.remainedTime,
+    IsActive: h.actived
+  }))
+
+  return res.status(200).send({data: viewHeros, status: "success"});
 }
 
 exports.change = async (req, res) => {
@@ -38,7 +51,6 @@ exports.change = async (req, res) => {
 
   const Land = await service.getLands(req.address)
   const Trainer = await service.getTrainers(req.address)
-  const HeroData = await service.getHeros(req.address)
 
   User.findOne({_id: req.idUser})
   .exec(async (err, user) => {
@@ -47,11 +59,14 @@ exports.change = async (req, res) => {
     }
     
     const selLand = Land.lands.find(l => l.id === user.activedLandId);
-    
-    if(selLand?.heroCount === HeroData.ids.length && req.body.status) {
+    const count = await Hero.count({owner: req.idUser, status: true});
+    if(selLand?.heroCount <= count && req.body.status) {
       return res.status(200).send({ data: "The number of available actives has reached the limit.", status: "errors" });
     }
-    const selTrainer = Trainer.trainers.find(t => t.id === user.activedTrainerId);
+    var selTrainer = Trainer.trainers.find(t => t.id === user.activedTrainerId);
+    if(!selTrainer) {
+      selTrainer = Trainer.trainers[0]
+    }
     var percent = 1 - selTrainer.percent / 100;
 
     Hero.findOne({
@@ -63,49 +78,49 @@ exports.change = async (req, res) => {
       }
   
       if (!hero) {
-        const newHero = new Hero({
-          address: req.address,
-          status: req.body.status,
-          user: req.idUser,
-          remainedTime: percent * config.aliveDuration
-        });
-        await newHero.save();
-        user.activedTrainerId = req.body.id;
-        user.save();
+        // const newHero = new Hero({
+        //   address: req.address,
+        //   status: req.body.status,
+        //   user: req.idUser,
+        //   remainedTime: percent * config.aliveDuration
+        // });
+        // await newHero.save();
+        // user.activedTrainerId = req.body.id;
+        // user.save();
   
+        // return res.status(200).send({
+        //   status: "success",
+        //   data: newHero,
+        // });
         return res.status(200).send({
-          status: "success",
-          data: hero,
+          status: "errors",
+          data: "not exist hero"
         });
       }else {
   
         let stamina = 3;
         if(req.body.stamina) {
           stamina = hero.stamina - 1;
-          if(stamina < 0) {
-            hero.isAlive = false;
-            hero.activedAt = Date.now();
+          if(stamina < 1) {
             hero.remainedTime = config.aliveDuration * percent;
+            stamina = 0;
           }
           hero.stamina  = stamina;
         }else if(req.body.status && !hero.status) {
 
-          hero.activedAt = Date.now();
+          hero.enabledAt = Date.now()
           hero.status = req.body.status
+          hero.stamina = 0;
           hero.remainedTime = config.aliveDuration * percent;
 
         }else if(!req.body.status && hero.status) {
-          if(hero.remainedTime * 1000 + hero.activedAt > Date.now()) {
-            hero.isAlive = true;
-          }else {
-            hero.remainedTime = config.aliveDuration * percent;
-          }
+          hero.stamina = 0;
+          hero.remainedTime = config.aliveDuration * percent;
           hero.status = req.body.status
+          hero.enabledAt = Date.now()
         }
   
         await hero.save();
-        user.activedTrainerId = req.body.id;
-        user.save();
         return res.status(200).send({
           status: "success",
           data: hero,

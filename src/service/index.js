@@ -43,40 +43,73 @@ class Service {
         const activedHeros = await Hero.find({owner: user._id, status: true})
 
         // const ids = this.heroContract.methods.walletOfOwner(account).call();
-        var ids = [1,2,3,4,5,6,76,56,,10,34,57]
+        var ids = [1,2]
         var heros = ids.map((id) => {
             // const res = await axios.get(`${config.hostingURL}/${id}`);
+            const res = {data: {
+                "attributes": {
+                    "attack": getRndInteger(1, 10),
+                    "health": getRndInteger(1, 10),
+                    "type": getRandomType()
+                  },
+                  "image": "",
+                  "description": "",
+                  "name": getRandomName(7)
+            }}
 
             const selHero = activedHeros.find(h => h.idHero === id);
             var actived = false;
+            var stamina = 0
+            var remainedTime = config.aliveDuration
+            var enabledAt = 0
             if(selHero) {
+                stamina = selHero.stamina
+                remainedTime = selHero.remainedTime
+                if(selHero.enabledAt + selHero.remainedTime <= Date.now() && selHero.stamina === 0) {
+                    selHero.remainedTime = 0
+                    selHero.stamina = 3;
+                    selHero.enabledAt = Date.now()
+                    selHero.save();
+                    stamina = 3;
+                    remainedTime = 0
+                }else if(selHero.stamina === 0) {
+                    selHero.stamina = 0;
+                    selHero.remainedTime = selHero.remainedTime - (Date.now() - selHero.enabledAt)
+                    selHero.enabledAt = Date.now()
+                    selHero.save();
+                    stamina = 0;
+                    remainedTime = selHero.remainedTime - (Date.now() - selHero.enabledAt)
+                }
                 actived = true;
+                enabledAt = selHero.enabledAt
             }
 
             return  {
                 id,
-                "attributes": {
-                  "attack": 3,
-                  "health": 3,
-                  "type": getRandomType()
-                },
-                "image": "",
-                "description": "",
-                "name": "Skin Lella",
+                name: res.data.name,
+                image: res.data.image,
+                description: res.data.description,
+                royalty: res.data.attributes.type,
+                attack: res.data.attributes.attack,
+                health: res.data.attributes.health,
+                stamina,
+                remainedTime,
+                enabledAt,
                 actived
               }
         });
         ids = [-1, ...ids]
         heros = [{
             id: -1,
-            "attributes": {
-              "attack": 3,
-              "health": 3,
-              "type": "Default"
-            },
-            "image": "",
-            "description": "",
-            "name": "Skin Lella"
+            name: "KNC",
+            image: "res.data.image",
+            description: "res.data.description",
+            royalty: 10,
+            attack: 1,
+            health: 10,
+            stamina: 3,
+            remainedTime: config.aliveDuration,
+            actived: true
           }, ...heros]
         return {
           ids,
@@ -158,9 +191,10 @@ class Service {
             // }
             // return  memo[id] = res.data;
             let actived = false;
-            if(id === user.activedTrainerId) {
+            if(id == user.activedTrainerId) {
                 actived = true
             }
+            
             return {
                 id,
                 type: getRandomType(),
@@ -168,7 +202,6 @@ class Service {
                 actived
             };
         });
-
         ids = [-1, ...ids]
         trainers = [{
             id: -1,
@@ -177,7 +210,6 @@ class Service {
         }, ...trainers]
         return {ids, trainers}
     }
-
 
    
     async sendTransaction(tx, contractAddress) {
@@ -214,5 +246,14 @@ const getRandomType = () => {
 const getRandomPercent = () => {
     const percents = [11, 22, 33]
     return percents[getRndInteger(0, 2)]
+}
 
+const getRandomName = (length) => {
+    const alphas = "qwert yuiopa sdf hjkl zx cvbnm"
+    var name = "";
+    for(let i=0 ; i<length ; i++) {
+        name += alphas[getRndInteger(0, 26)];
+    }
+
+    return name;
 }

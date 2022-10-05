@@ -94,12 +94,10 @@ exports.claim = async (req, res) => {
   const user = await User.findOne({_id: req.idUser});
 
   if(user.awardAmount > config.minClaimAmount && Date.now() - user.firstWinAt >= config.claimEnableDate) {
-    console.log(Date.now() - user.firstWinAt, config.claimEnableDate)
 
     const differenceDate = Number.parseInt((Date.now() - user.firstWinAt - config.claimEnableDate) / config.day);
     let feePercent = 0.5 - differenceDate * 0.05
     feePercent = feePercent > 0 ? feePercent : 0
-    console.log(feePercent)
     await User.updateOne({_id: req.idUser}, {awardAmount: 0, isFirstWin: false});
     // await service.claim(req.address, user.awardAmount - user.awardAmount * feePercent );
     return res.status(200).send({data: "success", status: "success"});    

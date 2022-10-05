@@ -22,5 +22,6 @@ db.role = require("./role.model")(db.connection, autoIncrement);
 db.hero = require("./hero.model")(db.connection, autoIncrement);
 db.game = require("./game.model")(db.connection, autoIncrement);
 db.token = require("./token.model")(db.connection, autoIncrement);
+db.ROLES = ["user", "admin"];
 
 module.exports = db;

@@ -38,16 +38,18 @@ exports.put = async (req, res) => {
     }
     var Trainer = await service.getTrainers(req.address)
 
-    if(Trainer.ids.includes(req.body.id)){
+    if(!Trainer.ids.includes(req.body.id)){
       return res.status(200).send({ data: "Please buy trainer", status: "error" });
     }
     
     const preTrainer = await service.getTrainerDetail(user.activedTrainerId);
+    const selTrainer = Trainer.trainers.find(t => t.id == req.body.id);
 
     let prePercent = preTrainer.percent
     user.activedTrainerId = req.body.id;
+    await user.save();
 
-    await updateRemainTime(req.idUser, prePercent, Trainer.trainers[req.body.id].percent);
+    await updateRemainTime(req.idUser, prePercent, selTrainer.percent);
 
     return res.status(200).send({ data: "success", status: "success"});
       
@@ -58,24 +60,23 @@ exports.put = async (req, res) => {
 
 const updateRemainTime = async (idUser, prePercent, newPercent) => {
 
-  const heros = await Hero.find({ owner: idUser, isAlive: false, status: true });
+  const heros = await Hero.find({ owner: idUser, stamina: 0, status: true });
     
   var percent = 1 - newPercent / 100;
   var prePercent = 1 - prePercent / 100;
 
   for(let i=0 ; i<heros.length ; i++) {
-    const hero = await Hero.findOne({_id: heros[i]._id});
         
-    if(hero.status) {
-      hero.remainedTime = (hero.remainedTime - (Date.now() - hero.activedAt) / 1000) / prePercent * percent;
-      if(hero.remainedTime * 1000 + hero.activedAt > Date.now()) {
-        hero.isAlive = true;
-      }
+    const currentRemainTime = (Date.now() - heros[i].enabledAt) - heros[i].remainedTime;
+    if(currentRemainTime > 0) {
+      heros[i].remainedTime = 0;
+      heros[i].stamina = 3;
     }else {
-      hero.remainedTime = hero.remainedTime * percent;
+      heros[i].remainedTime = currentRemainTime / prePercent * percent * -1;
+      heros[i].stamina = 0;
     }
-  
-    await hero.save()
+    
+    await heros[0].save()
   }
   
 }

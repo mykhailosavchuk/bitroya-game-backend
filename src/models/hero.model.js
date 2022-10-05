@@ -14,12 +14,9 @@ module.exports = (connection, autoIncrement) => {
       max: 3,
       min: 0
     },
-    isAlive: {
-      type: Boolean,
-      default: false
-    },
     enabledAt: {
       type: Number,
+      default: 0
     },
     remainedTime: {
       type: Number,
