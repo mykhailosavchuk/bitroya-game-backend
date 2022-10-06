@@ -30,8 +30,26 @@ exports.dashboard = async (req, res) => {
         }, status: "errors"
       });
     })
+};
 
+exports.getBossFee = async (req, res) => {
 
+  User.findOne({ _id: req.idUser })
+    .exec(async (err, user) => {
+
+      if (err) {
+        res.status(500).send({ data: err, status: "errors" });
+        return;
+      }
+
+      if (!user) {
+        return res.status(404).send({ data: "User Not found.", status: "errors" });
+      }
+
+      return res.status(200).send({
+        data: user.bossFee, status: "errors"
+      });
+    })
 };
 
 exports.setRole = (req, res) => {
