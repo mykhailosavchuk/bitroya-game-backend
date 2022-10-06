@@ -31,6 +31,10 @@ module.exports = (connection, autoIncrement) => {
       type: Boolean,
       default: false
     },
+    bossFee: {
+      type: Number,
+      default: 1000
+    },
     games: [
       {
         type: Number,

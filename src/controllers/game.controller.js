@@ -40,13 +40,16 @@ exports.create = (req, res) => {
     .exec(async (err, user) => {
 
       if (err) {
-        res.status(500).send({ data: err, status: "errors" });
+        res.status(200).send({ data: err, status: "errors" });
         return;
       }
 
       if (!user) {
-        return res.status(404).send({ data: "User Not found.", status: "errors" });
+        return res.status(200).send({ data: "User Not found.", status: "errors" });
       }
+
+      await Token.deleteMany({user: req.idUser, type: "Game"});
+      await Game.updateMany({user: req.idUser, result: "Error"});
 
       let token = await new Token({
         user: req.idUser,
@@ -81,7 +84,7 @@ exports.upate = async (req, res) => {
         type: "Game",
       });
 
-      if (tokens.length === 0) return res.status(200).send({ data: "Token doesn't exist", status: "errors" });
+      if (tokens.length === 0) return res.status(200).send({ data: "Game is already finished", status: "errors" });
       if (!tokens.map(t => t.token).includes(req.token)) {
         return res.status(200).send({ data: "Incorrect token", status: "errors" });
       }
@@ -93,7 +96,11 @@ exports.upate = async (req, res) => {
         } else {
           await User.findOneAndUpdate({ _id: req.idUser }, { $inc: { 'awardAmount': config.awardAmount } });
         }
+        await User.findOneAndUpdate({ _id: req.idUser }, { bossFee: 1000 });
+      }else {
+        await User.findOneAndUpdate({ _id: req.idUser }, { bossFee: req.body.bossFee });
       }
+
       await Game.updateOne({ user: req.idUser, result: req.body.result });
       await Token.deleteMany({ _id: { $in: tokens.map(t => t._id) } });
 

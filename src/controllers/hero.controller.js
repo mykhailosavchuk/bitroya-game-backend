@@ -3,6 +3,7 @@ const db = require("../models");
 const service = require("../service")
 const Hero = db.hero;
 const User = db.user;
+const Token = db.token;
 
 exports.get = async (req, res) => {
 
@@ -55,7 +56,7 @@ exports.get = async (req, res) => {
     })
 }
 
-exports.change = async (req, res) => {
+exports.changeStatus = async (req, res) => {
   const isInclude = await verifyOwner(req.address, [req.body.id]);
   if (!isInclude) {
     return res.status(200).send({ data: "Token balance error! Please reload your tokens", status: "errors" });
@@ -90,20 +91,65 @@ exports.change = async (req, res) => {
           }
 
           if (!hero) {
-            // const newHero = new Hero({
-            //   address: req.address,
-            //   status: req.body.status,
-            //   user: req.idUser,
-            //   remainedTime: percent * config.aliveDuration
-            // });
-            // await newHero.save();
-            // user.activedTrainerId = req.body.id;
-            // user.save();
+            return res.status(200).send({
+              status: "errors",
+              data: "not exist hero"
+            });
+          } else {
 
-            // return res.status(200).send({
-            //   status: "success",
-            //   data: newHero,
-            // });
+            if (req.body.status && !hero.status) {
+
+              hero.enabledAt = Date.now()
+              hero.status = req.body.status
+              hero.stamina = 0;
+              hero.remainedTime = config.aliveDuration * percent;
+
+            } else if (!req.body.status && hero.status) {
+              hero.stamina = 0;
+              hero.remainedTime = config.aliveDuration * percent;
+              hero.status = req.body.status
+              hero.enabledAt = Date.now()
+            }
+
+            await hero.save();
+            return res.status(200).send({
+              status: "success",
+              data: hero,
+            });
+          }
+        });
+
+    })
+
+};
+
+
+exports.changeStamina = async (req, res) => {
+  const isInclude = await verifyOwner(req.address, [req.body.id]);
+  if (!isInclude) {
+    return res.status(200).send({ data: "Token balance error! Please reload your tokens", status: "errors" });
+  }
+
+  const token = await Token.findOne({user: req.idUser, type: "Game", token: req.token})
+  if(!token) {
+    return res.status(200).send({ data: "Game is finished and other one is started.", status: "errors" });
+  }
+
+  User.findOne({ _id: req.idUser })
+    .exec(async (err, user) => {
+      if (err) {
+        return res.status(200).send({ data: err, status: "errors" });
+      }
+
+      Hero.findOne({
+        idHero: req.body.id
+      })
+        .exec(async (err, hero) => {
+          if (err) {
+            return res.status(200).send({ data: "Incorrect id or password", status: "errors" });
+          }
+
+          if (!hero) {
             return res.status(200).send({
               status: "errors",
               data: "not exist hero"
@@ -118,18 +164,6 @@ exports.change = async (req, res) => {
                 stamina = 0;
               }
               hero.stamina = stamina;
-            } else if (req.body.status && !hero.status) {
-
-              hero.enabledAt = Date.now()
-              hero.status = req.body.status
-              hero.stamina = 0;
-              hero.remainedTime = config.aliveDuration * percent;
-
-            } else if (!req.body.status && hero.status) {
-              hero.stamina = 0;
-              hero.remainedTime = config.aliveDuration * percent;
-              hero.status = req.body.status
-              hero.enabledAt = Date.now()
             }
 
             await hero.save();
