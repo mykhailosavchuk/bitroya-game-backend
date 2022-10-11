@@ -1,0 +1,10 @@
+{
+  "attributes": {
+    "attack": 1,
+    "health": 2,
+    "type": "COMMUN"
+  },
+  "image": "",
+  "description": "",
+  "name": "Skin robot"
+}

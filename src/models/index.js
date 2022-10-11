@@ -13,7 +13,7 @@ const options = {
 };
 
 db.mongoose = mongoose;
-// db.connection = db.mongoose.createConnection(`mongodb://uwpvf6mq9liyquanmh7a:BrGqcfDH5Xur6cm0Jjp@bzcp33vwyf3xkaobaqux-mongodb.services.clever-cloud.com:2088/bzcp33vwyf3xkaobaqux`)
+// db.connection = db.mongoose.createConnection(`mongodb://uyq2obg9ogl8jr2rtqs6:jTpCeuJ2EBtJTvcxxPvd@n1-c2-mongodb-clevercloud-customers.services.clever-cloud.com:27017,n2-c2-mongodb-clevercloud-customers.services.clever-cloud.com:27017/bnlybsg1eqxws77?replicaSet=rs0`)
 db.connection = db.mongoose.createConnection(`mongodb://127.0.0.1:27017/nft-game`)
 autoIncrement.initialize(db.connection);
 

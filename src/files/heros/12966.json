@@ -1,0 +1,10 @@
+{
+  "attributes": {
+    "attack": 3,
+    "health": 3,
+    "type": "COMMUN"
+  },
+  "image": "",
+  "description": "",
+  "name": "Skin warrior"
+}

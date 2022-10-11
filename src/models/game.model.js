@@ -7,7 +7,7 @@ module.exports = (connection, autoIncrement) => {
   const GameSchema = new mongoose.Schema({
     result: {
       type: String,
-      enum: ["Win", "Loss", "Error"],
+      enum: ["Win", "Loss", "Error", "Playing"],
     },
     user: {
       type: Number,
@@ -16,7 +16,11 @@ module.exports = (connection, autoIncrement) => {
     heros: [{
       type: Number,
       ref: "Hero",
-    }]
+    }],
+    token: {
+      type: Number,
+      ref: "Token"
+    }
   });
   
   GameSchema.plugin(timestamps);

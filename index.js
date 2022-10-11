@@ -1,20 +1,14 @@
 const express = require("express");
 var path = require('path');
 const cors = require("cors");
-const Web3 = require('web3');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const passport    = require('passport');
 const session = require('express-session');
 
-const GameContract = require("./src/blockchain/abis/Game.json");
-const NFTContract = require("./src/blockchain/abis/ERC721.json");
-const MulticallContract = require("./src/blockchain/abis/Multicall.json");
-const service = require("./src/service");
 const indexRouter = require("./src/routes");
 
-const { privateKey, trainerContractAddr, landContractAddr, heroContractAddr, multicallAddress, gameContractAddr } = require("./src/config");
 const { secret } = require("./src/config/auth.config")
 
 require('dotenv').config(); 
@@ -32,34 +26,28 @@ app.use(session({
 	cookie: { maxAge: 1000 * 60 * 60 * 24 }
 }))
 app.set("view engine", "ejs")
-var corsOptions = {
-  origin: "*"
-};
+var allowedOrigins = ['http://localhost:3000',
+                      'http://yourapp.com'];
+// app.use(cors({
+//   origin: function(origin, callback){
+//     // allow requests with no origin 
+//     // (like mobile apps or curl requests)
+//     console.log(origin)
+//     if(!origin) return callback(null, true);
+//     if(allowedOrigins.indexOf(origin) === -1){
+//       var msg = 'The CORS policy for this site does not ' +
+//                 'allow access from the specified Origin.';
+//       return callback(new Error(msg), false);
+//     }
+//     return callback(null, true);
+//   }
+// }));
 
-app.use(cors(corsOptions));
-
-
-(async () => {
-  try{
-    const web3 = new Web3(new Web3.providers.HttpProvider('https://bsc-dataseed.binance.org'));
-    const account = web3.eth.accounts.privateKeyToAccount(privateKey)
-
-    service.web3 = web3;
-    service.account = account;
-    service.trainerContract = new web3.eth.Contract(NFTContract.abi, trainerContractAddr);
-    service.landContract = new web3.eth.Contract(NFTContract.abi, landContractAddr);
-    service.heroContract = new web3.eth.Contract(NFTContract.abi, heroContractAddr);
-    // service.multicallContract = new web3.eth.Contract(MulticallContract.abi, multicallAddress);
-    service.gameContract = new web3.eth.Contract(GameContract.abi, gameContractAddr);
-
-  } catch (evt) {
-    console.log(evt);
-  }
-})();
+app.use(cors());
 
 app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
   // another common pattern
   // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -67,7 +55,7 @@ app.use(function (req, res, next) {
       'Access-Control-Allow-Headers',
       'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
-  if (req.method === 'OPTIONS') {
+  if (req.method == 'OPTIONS') {
       res.status(200).end()
       return;
   }
@@ -77,7 +65,7 @@ app.use(function (req, res, next) {
 
 app.use('/api', indexRouter); 
 
-app.get("/", (req, res) => {
+app.get("/check", (req, res) => {
   return res.send("Welcome!");
 });
 
@@ -86,7 +74,7 @@ app.get("/", (req, res) => {
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  res.locals.error = req.app.get('env') == 'development' ? err : {};
 
   // render the error page
   res.status(err.status || 500);
@@ -115,7 +103,7 @@ app.listen(PORT, () => {
 
 function initial() {
   Role.estimatedDocumentCount((err, count) => {
-    if (!err && count === 0) {
+    if (!err && count == 0) {
       new Role({
         name: "user"
       }).save(err => {

@@ -1,6 +1,7 @@
 const db = require("../models");
 const service = require("../service");
 const User = db.user;
+const config = require("../config")
 
 exports.dashboard = async (req, res) => {
 
@@ -20,15 +21,36 @@ exports.dashboard = async (req, res) => {
       const lands = await service.getLands(req.address);
       const trainers = await service.getTrainers(req.address);
 
+      var enabledClaim = false;
+      var feePercent = 0.5;
+      if (user.awardAmount > config.minClaimAmount && Date.now() - user.firstWinAt >= config.claimEnableDate) {
 
+        enabledClaim = true;
+        const differenceDate = Number.parseInt((Date.now() - user.firstWinAt - config.claimEnableDate) / config.day);
+        feePercent = 0.5 - differenceDate * 0.05
+        feePercent = feePercent > 0 ? feePercent : 0
+      }
+
+      console.log(user)
       return res.status(200).send({
         data: {
-          user,
+          user: {
+            awardAmount: (user.awardAmount / Math.pow(10, 18)).toFixed(2),
+            minClaimAmount: (config.minClaimAmount / Math.pow(10, 18)).toFixed(2),
+            activedLandId: user.activedLandId,
+            activedTrainerId: user.activedTrainerId,
+            bossFee: user.bossFee,
+            address: user.address,                        
+            enabledClaim,
+            feePercent
+          },
           lands: lands.lands,
           trainers: trainers.trainers
 
         }, status: "errors"
       });
+
+      
     })
 };
 
@@ -47,7 +69,7 @@ exports.getBossFee = async (req, res) => {
       }
 
       return res.status(200).send({
-        data: user.bossFee, status: "errors"
+        data: user.bossFee, status: "success"
       });
     })
 };
@@ -96,7 +118,6 @@ exports.setRole = (req, res) => {
         );
     })
 };
-
 
 exports.delete = (req, res) => {
   User.deleteOne({ _id: req.params.id })

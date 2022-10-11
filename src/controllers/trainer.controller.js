@@ -43,16 +43,19 @@ exports.put = async (req, res) => {
       }
       var Trainer = await service.getTrainers(req.address)
 
-      if (!Trainer.ids.includes(req.body.id)) {
+      if (!Trainer.ids.includes(req.body.id.toString())) {
         return res.status(200).send({ data: "Please buy trainer", status: "error" });
       }
 
       const preTrainer = await service.getTrainerDetail(user.activedTrainerId);
-      const selTrainer = Trainer.trainers.find(t => t.id == req.body.id);
 
       let prePercent = preTrainer.percent
-      user.activedTrainerId = req.body.id;
+      if(req.body.status) {
+        user.activedTrainerId = req.body.id;
+      }
       await user.save();
+
+      const selTrainer = Trainer.trainers.find(t => t.id == user.activedTrainerId);
 
       await updateRemainTime(req.idUser, prePercent, selTrainer.percent);
 

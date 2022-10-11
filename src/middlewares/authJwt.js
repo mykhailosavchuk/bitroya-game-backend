@@ -23,11 +23,14 @@ const verifyToken = (req, res, next) => {
 
 const verifyGameToken = (req, res, next) => {
   let token = req.headers["x-csrf-token"];
-  if (!token) {
+  let xToken = req.headers["x-game-token"];
+  if (!token || !xToken) {
     return res.status(403).send({ message: "No token provided!" });
   }
 
   req.token = token;
+  req.xToken = xToken;
+
   next();
 };
 
@@ -49,7 +52,7 @@ const isAdmin = (req, res, next) => {
         }
 
         for (let i = 0; i < roles.length; i++) {
-          if (roles[i].name === "admin") {
+          if (roles[i].name == "admin") {
             next();
             return;
           }
@@ -80,7 +83,7 @@ const isUser = (req, res, next) => {
         }
 
         for (let i = 0; i < roles.length; i++) {
-          if (roles[i].name === "user") {
+          if (roles[i].name == "user") {
             next();
             return;
           }

@@ -1,0 +1,10 @@
+{
+  "attributes": {
+    "attack": 10,
+    "health": 10,
+    "type": "MYTHICAL"
+  },
+  "image": "",
+  "description": "",
+  "name": "Skin fairy"
+}
